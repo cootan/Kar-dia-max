@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Increase Image Size</title>
+</head>
+<body>
+    <h1>Increase Image Size</h1>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" required><br><br>
+        <label for="sizeSelect">Choose file size:</label>
+        <select id="sizeSelect" required>
+            <option value="100">100 MB</option>
+            <option value="99">99 MB</option>
+        </select><br><br>
+        <button type="submit">Upload and Download Modified Version</button>
+    </form>
+
+    <p id="status"></p>
+
+    <script>
+document.getElementById('uploadForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const fileInput = document.getElementById('fileInput');
+    const sizeSelect = document.getElementById('sizeSelect');
+    const status = document.getElementById('status');
+
+    if (fileInput.files.length === 0) {
+        status.textContent = 'Please select a file.';
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const targetSizeMB = parseInt(sizeSelect.value);
+    const targetSize = targetSizeMB * 1024 * 1024;
+
+    // Read the file as a Blob
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const originalFile = new Uint8Array(event.target.result);
+        const originalSize = originalFile.length;
+
+        if (originalSize >= targetSize) {
+            status.textContent = 'File is already larger than or equal to the target size.';
+            return;
+        }
+
+        const paddingSize = targetSize - originalSize;
+        const padding = new Uint8Array(paddingSize).fill(0); // Create padding with null bytes
+        const newFile = new Blob([originalFile, padding], { type: file.type });
+
+        // Create a download link
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(newFile);
+        downloadLink.download = file.name.split('.').slice(0, -1).join('.') + `_${targetSizeMB}MB.` + file.name.split('.').pop();
+        downloadLink.click();
+
+        status.textContent = 'Download started.';
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+</script>
+</body>
+</html>
